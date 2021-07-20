@@ -1,0 +1,59 @@
+---
+# Assert that the needed creation binary files exists on the machine
+- name: Assert PSMP envmanager exists
+  block:
+    - name: Get envmanager stat details
+      stat:
+        path: "{{ psmp_envmanager_path }}"
+      register: stat_results
+    - name: Assert envmanager exists
+      fail:
+        msg: "{{ psmp_envmanager_path }} does not exist, activation failed."
+      when: not stat_results.stat.exists
+  when: psmp_create_psmp_env
+- name: Assert PSMPADB createenv exists
+  block:
+    - name: Get createadbenv stat details
+      stat:
+        path: "{{ psmp_createadbenv_path }}"
+      register: stat_results
+    - name: Assert creatadbenv exists
+      fail:
+        msg: "{{ psmp_createadbenv_path }} does not exist, activation failed."
+      when: not stat_results.stat.exists
+  when: psmp_create_adbridge_env
+
+# Assert that the vault folders exists
+- name: Assert PSMP vault folder exists
+  block:
+    - name: Get vault folder stat details
+      stat:
+        path: "{{ psmp_vault_env_path }}"
+      register: stat_results
+    - name: Assert vault folder exists
+      fail:
+        msg: "{{ psmp_vault_env_path }} does not exist, most likely a malformed installation, activation failed."
+      when: not stat_results.stat.exists
+  when: psmp_create_psmp_env
+- name: Assert PSMPADB vault folder exists
+  block:
+    - name: Get vault folder stat details
+      stat:
+        path: "{{ psmp_adb_vault_env_path }}"
+      register: stat_results
+    - name: Assert vault folder exists
+      fail:
+        msg: "{{ psmp_adb_vault_env_path }} does not exist, most likely a malformed installation, activation failed."
+      when: not stat_results.stat.exists
+  when: psmp_create_adbridge_env
+
+# Check if PSMP was already activated
+- name: Collect service info
+  service_facts:
+  register: services_state
+- name: Check if PSMP is activated
+  set_fact:
+    psmp_is_activated: true
+  when:
+    - psmp_exists
+    - services_state.ansible_facts.services[psmp_service_name].state == "running"

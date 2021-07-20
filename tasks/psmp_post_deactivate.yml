@@ -1,0 +1,28 @@
+---
+# Remove the cred file if created by the role or requested by the user
+- name: Delete cred file
+  block:
+    - name: Remove credfile from machine
+      file:
+        path: "{{ credfile_path }}"
+        state: absent
+    - name: Reset cred facts
+      set_fact:
+        credfile_path: ""
+  when: psmp_delete_credfile
+
+# Stop the PSMP service
+- name: Stop PSMP service
+  service:
+    name: "{{ psmp_service_name }}"
+    state: stopped
+
+# Fetch the logs back to the user
+- name: Fetch deactivation logs
+  when: psmp_fetch_activation_logs
+  block:
+    - name: Fetch PSMP deactivation logs
+      fetch:
+        src: "{{ psmp_envmanager_log_file_path }}"
+        dest: '{{ lookup("config", "DEFAULT_LOG_PATH") | dirname }}/psmp/{{ inventory_hostname }}_psmp_deactivation.log'
+        flat: yes

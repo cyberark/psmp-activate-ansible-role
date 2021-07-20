@@ -1,0 +1,29 @@
+---
+# Remove the cred file if created by the role or requested by the user
+- name: Delete cred file
+  block:
+    - name: Remove credfile from machine
+      file:
+        path: "{{ credfile_path }}"
+        state: absent
+    - name: Reset cred facts
+      set_fact:
+        credfile_path: ""
+  when: psmp_delete_credfile
+
+# Fetch the logs back to the user
+- name: Fetch activation logs
+  when: psmp_fetch_activation_logs
+  block:
+    - name: Fetch PSMP activation logs
+      fetch:
+        src: "{{ psmp_envmanager_log_file_path }}"
+        dest: '{{ lookup("config", "DEFAULT_LOG_PATH") | dirname }}/psmp/{{ inventory_hostname }}_psmp_activation.log'
+        flat: yes
+      when: psmp_create_psmp_env
+    - name: Fetch ADBridge activation logs
+      fetch:
+        src: "{{ psmp_adb_createenv_log_file_path }}"
+        dest: '{{ lookup("config", "DEFAULT_LOG_PATH") | dirname }}/psmp/{{ inventory_hostname }}_adb_activation.log'
+        flat: yes
+      when: psmp_create_adbridge_env

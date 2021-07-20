@@ -1,0 +1,21 @@
+---
+# Run the PSMP deactivation
+- name: Run PSMP deactivation
+  command:
+    argv:
+      - "{{ psmp_envmanager_path }}"
+      - TeardownEnv
+      - -AcceptEULA
+      - "{{ accept_eula }}"
+      - -CredFile
+      - "{{ credfile_path }}"
+      - -VaultEnvPath
+      - "{{ psmp_vault_env_path }}"
+      - -ICUFolder
+      - "{{ psmp_bin_path }}"
+      - -LogsWSFolder
+      - "{{ psmp_var_path }}"
+      - -PSMPAppUser
+      - "{{ psmp_app_user_name }}"
+      - -PSMPGWUser
+      - "{{ psmp_gw_user_name }}"

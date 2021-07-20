@@ -1,0 +1,82 @@
+---
+# Assert the EULA is set to yes
+- name: Assert EULA
+  fail:
+    msg: "You must accept the EULA in order to execute the PSMP Role"
+  when: (accept_eula|type_debug != 'bool' and accept_eula|lower != "yes") or (accept_eula|type_debug == 'bool' and not accept_eula)
+
+# Gather the machine facts
+- name: Gather package facts
+  package_facts:
+    manager: auto
+- set_fact:
+    psmp_exists: "{{ 'CARKpsmp' in ansible_facts.packages }}"
+    psmp_integrated_exists: "{{ 'CARKpsmp-infra' in ansible_facts.packages }}"
+    libssh_exists: "{{ 'libssh' in ansible_facts.packages }}"
+
+# Check if PSMP is installed
+- name: Fail if PSMP does not exist
+  fail:
+    msg: "PSMP is not installed on the machine, cannot run activation / deactivation, aborting."
+  when: not psmp_exists
+
+# Init the vault parameters if not set
+- name: Init vault password
+  set_fact:
+    vault_password: ""
+  when: vault_password is undefined
+  no_log: true
+- name: Init cred file path
+  set_fact:
+    credfile_path: ""
+    psmp_delete_credfile: true
+  when: (credfile_path is undefined or credfile_path == '')
+  no_log: true
+
+# Make sure at least the cred file or the user and password were given
+- name: Check if the user uses both password and cred file
+  fail:
+    msg: "You must provide either vault_username and vault_password or credfile_path parameter"
+  when:
+    - ((vault_username != '' or vault_password != '') and credfile_path != '')
+    - (credfile_path == '' and (vault_username == '' or vault_password == ''))
+  no_log: true
+
+# Make sure a vault username was given if no cred file
+- name: Check if vault username is not empty if no cred file
+  fail:
+    msg: "You must provide a none empty vault_username"
+  when:
+    - (vault_username is undefined or vault_username == '')
+    - credfile_path == ''
+  no_log: true
+
+# Make sure a vault ip was given
+- name: Check if vault ip is not empty
+  fail:
+    msg: "You must provide at least a none empty vault_ip"
+  when: (vault_ip is undefined or vault_ip == '')
+  no_log: true
+
+# Gather the hostname and set the psmp user names accordingly if not set by the user
+- name: Get remote hostname
+  command: "hostname"
+  register: remote_target_hostname
+- name: Set PSMP App User if not exists
+  set_fact:
+    psmp_app_user_name: "PSMPApp_{{ remote_target_hostname.stdout | string | b64encode | replace('=', '') }}"
+  when:
+    - (psmp_app_user_name is undefined or psmp_app_user_name == '')
+    - psmp_create_psmp_env
+- name: Set PSMP GW User if not exists
+  set_fact:
+    psmp_gw_user_name: "PSMPGW_{{ remote_target_hostname.stdout | string | b64encode | replace('=', '') }}"
+  when:
+    - (psmp_gw_user_name is undefined or psmp_gw_user_name == '')
+    - psmp_create_psmp_env
+- name: Set PSMP ADB User if not exists
+  set_fact:
+    psmp_adb_user_name: "PSMP_ADB_{{ remote_target_hostname.stdout | string | b64encode | replace('=', '') }}"
+  when:
+    - (psmp_adb_user_name is undefined or psmp_adb_user_name == '')
+    - psmp_create_adbridge_env

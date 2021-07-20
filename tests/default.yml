@@ -1,0 +1,54 @@
+---
+- hosts: psmp
+  gather_facts: yes
+  tasks:
+    # Download the PSMP release from some bucket
+    - name: Download package from s3
+      aws_s3:
+        bucket: ofir-devel-bucket
+        object: "PSMSSH-RHELinux-Intel64-11.07.0.10.zip"
+        dest: "/tmp/psmp.zip"
+        mode: get
+      delegate_to: localhost
+
+    # Run both the PSMP deployment role and the PSMP activation role
+    - name: Get roles directory dirname
+      set_fact:
+        roles_dirname: "{{ playbook_dir | dirname | basename }}"
+    - name: PSMP Deployment
+      include_role:
+        name: "../../psmp-deploy"
+      vars:
+        - psmp_extract_install: true
+        - psmp_pre_install: true
+        - psmp_install: true
+        - psmp_post_install: true
+        - psmp_validate_install: true
+        - psmp_install_mode: "Integrated"
+        - psmp_install_adbridge: true
+        - psmp_harden_machine: true
+        - psmp_ignore_checksum: false
+        - psmp_with_selinux: true
+        - psmp_permit_root_login: true
+        - accept_eula: "Yes"
+        - psmp_zip_file_path: "/tmp/psmp.zip"
+        - psmp_fetch_install_logs: true
+    - name: PSMP Activation
+      include_role:
+        name: "{{ roles_dirname }}"
+      vars:
+        - psmp_validate_machine: true
+        - psmp_pre_activate: true
+        - psmp_activate: true
+        - psmp_post_activate: true
+        - psmp_validate_activation: true
+        - psmp_pre_deactivate: false
+        - psmp_deactivate: false
+        - psmp_post_deactivate: false
+        - vault_ip: ""
+        - vault_username: ""
+        - vault_password: ""
+        - psmp_enable_preauth_secured_session: true
+        - psmp_enable_selfsigned_certificates: true
+        - accept_eula: "Yes"
+        - psmp_fetch_activation_logs: true

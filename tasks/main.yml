@@ -1,0 +1,73 @@
+---
+# Validate parameters
+- name: Validate input parameters
+  include_tasks: psmp_validate_params.yml
+
+# Validate machine
+- name: Validate PSMP machine
+  include_tasks: psmp_validate_machine.yml
+  when:
+    - psmp_exists
+    - psmp_validate_machine
+  tags: [print_action]
+
+# Prepare to activate PSMP
+- name: PSMP Activation
+  block:
+    - name: Run preactivation for PSMP
+      include_tasks: psmp_pre_activate.yml
+      when:
+        - psmp_exists
+        - psmp_pre_activate
+      tags: [print_action]
+
+    # Activate PSMP
+    - name: Activate PSMP
+      include_tasks: psmp_activate.yml
+      when:
+        - psmp_exists
+        - psmp_activate
+        - (psmp_is_activated is undefined) or (not psmp_is_activated)
+      tags: [print_action]
+  always:
+    # Run PSMP post activation
+    - name: Run postactivation for PSMP
+      include_tasks: psmp_post_activate.yml
+      when:
+        - psmp_exists
+        - psmp_post_activate
+      tags: [print_action]
+
+# Validate PSMP activation
+- name: Validate PSMP activation
+  include_tasks: psmp_validate_activation.yml
+  when:
+    - psmp_exists
+    - psmp_validate_activation
+  tags: [print_action]
+
+- name: PSMP Deactivation
+  block:
+    # Prepare to deactive PSMP
+    - name: Run predeactivation for PSMP
+      include_tasks: psmp_pre_deactivate.yml
+      when:
+        - psmp_exists
+        - psmp_pre_deactivate
+      tags: [print_action]
+
+    # Deactive PSMP
+    - name: Deactivate PSMP
+      include_tasks: psmp_deactivate.yml
+      when:
+        - psmp_exists
+        - psmp_deactivate
+      tags: [print_action]
+  always:
+    # Run PSMP post deactivation
+    - name: Run predeactivation for PSMP
+      include_tasks: psmp_post_deactivate.yml
+      when:
+        - psmp_exists
+        - psmp_post_deactivate
+      tags: [print_action]

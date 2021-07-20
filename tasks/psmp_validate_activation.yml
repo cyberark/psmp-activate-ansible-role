@@ -1,0 +1,72 @@
+---
+# Check if the PSMP service is working
+- name: Validate PSMP is running
+  service:
+    name: "{{ psmp_service_name }}"
+    state: started
+  when: (psmp_create_psmp_env or psmp_create_adbridge_env)
+
+# Check if the logs indicate that the PSMP and ADBridge are working
+- name: Validate PSMP logs that PSMP is running
+  block:
+    - name: Check the console log file exists
+      stat:
+        path: "{{ psmp_console_log_path }}"
+      register: stat_result
+    - name: Fail if console log does not exist
+      fail:
+        msg: "Console log does not exist, PSMP was not activiated correctly, aborting"
+      when: not stat_result.stat.exists
+    - name: Read console log
+      lineinfile:
+        name: "{{ psmp_console_log_path }}"
+        regexp: ".*PSM SSH Proxy.*on machine.*is up and working.*"
+        state: absent
+      check_mode: yes
+      changed_when: false
+      register: psmp_exists_in_logs
+    - name: Assert console log exists
+      fail:
+        msg: "It seems PSMP was not started successfully from the logs, please check the PSMP console log for more information"
+      when: not psmp_exists_in_logs.found
+  when: psmp_create_psmp_env
+- name: Validate ADB logs that ADB is running
+  block:
+    - name: Check the console log file exists
+      stat:
+        path: "{{ psmp_adb_console_log_path }}"
+      register: stat_result
+    - name: Fail if console log does not exist
+      fail:
+        msg: "Console log does not exist, PSMPADB was not activiated correctly, aborting"
+      when: not stat_result.stat.exists
+    - name: Read console log
+      lineinfile:
+        name: "{{ psmp_adb_console_log_path }}"
+        regexp: ".*PSMP-ADBridge Server.*on machine.*is up and working.*"
+        state: absent
+      check_mode: yes
+      changed_when: false
+      register: psmp_adb_exists_in_logs
+    - name: Assert console log exists
+      fail:
+        msg: "It seems PSMP ADBridge was not started successfully from the logs, please check the PSMP console log for more information"
+      when: not psmp_adb_exists_in_logs.found
+  when: psmp_create_adbridge_env
+
+# Assert the PSMP UDS files exists
+- name: Check PSMP UDS files exist
+  block:
+    - name: Get file stat details
+      stat:
+        path: "{{ item }}"
+      with_items: "{{ psmp_uds_files }}"
+      register: stat_results
+    - name: Assert file exists
+      fail:
+        msg: "{{ item }} is not a unix domain socket, PSMP activation failed"
+      with_items: "{{ stat_results.results }}"
+      loop_control:
+        label: "{{ item.stat.path }}"
+      when: (not item.stat.exists or not item.stat.issock)
+  when: psmp_create_psmp_env

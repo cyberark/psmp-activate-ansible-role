@@ -1,0 +1,33 @@
+---
+# Activate the PSMP and ADBridge
+- name: Run PSMP envmanager
+  command:
+    argv:
+      - "{{ psmp_envmanager_path }}"
+      - CreateEnv
+      - -AcceptEULA
+      - "{{ accept_eula }}"
+      - -CredFile
+      - "{{ credfile_path }}"
+      - -VaultEnvPath
+      - "{{ psmp_vault_env_path }}"
+      - -ICUFolder
+      - "{{ psmp_bin_path }}"
+      - -LogsWSFolder
+      - "{{ psmp_var_path }}"
+      - -PSMPAppUser
+      - "{{ psmp_app_user_name }}"
+      - -PSMPGWUser
+      - "{{ psmp_gw_user_name }}"
+  when: psmp_create_psmp_env
+- name: Run PSMP ADB createenv
+  command:
+    argv:
+      - "{{ psmp_createadbenv_path }}"
+      - -CredFilePath
+      - "{{ credfile_path }}"
+      - -VaultFilePath
+      - "{{ psmp_adb_vault_env_path }}"
+      - -PSMPADBridgeUser
+      - "{{ psmp_adb_user_name }}"
+  when: psmp_create_adbridge_env

@@ -1,0 +1,57 @@
+---
+# Steps vars
+psmp_validate_machine: false
+psmp_pre_activate: false
+psmp_activate: false
+psmp_post_activate: false
+psmp_validate_activation: false
+psmp_pre_deactivate: false
+psmp_deactivate: false
+psmp_post_deactivate: false
+
+# Required vars
+accept_eula: "No"
+vault_ip: ""
+vault_username: ""
+vault_password: ""
+credfile_path: ""
+
+# Optional vars
+dr_vault_ip: ""
+vault_name: "PSM-SSH Vault"
+vault_port: 1858
+vault_comm_timeout: 10
+psmp_create_psmp_env: true
+psmp_create_adbridge_env: true
+psmp_app_user_name: ""
+psmp_gw_user_name: ""
+psmp_adb_user_name: ""
+psmp_preauth_secured_session: false
+psmp_selfsigned_certificates: false
+psmp_delete_credfile: false
+psmp_fetch_activation_logs: true
+
+# Vars for running tasks
+psmp_service_name: "psmpsrv"
+psmp_bin_path: /opt/CARKpsmp/bin
+psmp_var_path: /var/opt/CARKpsmp
+psmp_console_log_path: "{{ psmp_var_path }}/logs/PSMPConsole.log"
+psmp_adb_bin_path: /opt/CARKpsmpadb/bin
+psmp_adb_var_path: /var/opt/CARKpsmpadb
+psmp_adb_console_log_path: "{{ psmp_adb_var_path }}/logs/ADBConsole.log"
+psmp_createcredfile_path: "{{ psmp_bin_path }}/createcredfile"
+psmp_envmanager_path: "{{ psmp_bin_path }}/envmanager"
+psmp_createadbenv_path: "{{ psmp_adb_bin_path }}/createpsmpadbenv"
+psmp_default_credfile_path: /tmp/user.cred
+psmp_vault_env_path: /etc/opt/CARKpsmp/vault
+psmp_adb_vault_env_path: /etc/opt/CARKpsmpadb/vault
+psmp_envmanager_log_file_path: "{{ psmp_var_path }}/temp/EnvManager.log"
+psmp_adb_createenv_log_file_path: "{{ psmp_adb_var_path }}/tmp/CreateEnv.log"
+psmp_vault_ini_name: "vault.ini"
+psmp_tmp_vault_ini_path: "/tmp/{{ psmp_vault_ini_name }}"
+psmp_uds_path: "{{ psmp_var_path }}/temp/.sockets/"
+psmp_uds_files:
+  - "{{ psmp_uds_path }}/PSMPSRV/password"
+  - "{{ psmp_uds_path }}/PSMPSRV/sshkey"
+  - "{{ psmp_uds_path }}/PSServices/Auth"
+  - "{{ psmp_uds_path }}/PSServices/Session"

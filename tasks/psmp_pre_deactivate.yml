@@ -1,0 +1,21 @@
+---
+# Create the credential file for the activation if password was given
+- name: Create cred file for deactivation
+  command:
+    argv:
+      - "{{ psmp_createcredfile_path }}"
+      - "{{ psmp_default_credfile_path }}"
+      - Password
+      - "-Username"
+      - "{{ vault_username }}"
+      - "-Password"
+      - "{{ vault_password }}"
+  when:
+    - (vault_password != '')
+    - (credfile_path == '')
+- name: Set the vault credfile fact
+  set_fact:
+    credfile_path: "{{ psmp_default_credfile_path }}"
+  when:
+    - (vault_password != '')
+    - (credfile_path == '')
