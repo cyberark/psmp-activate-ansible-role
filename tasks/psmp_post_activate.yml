@@ -11,6 +11,12 @@
         credfile_path: ""
   when: psmp_delete_credfile
 
+# Clear vault password
+- name: Clear vault password
+  set_fact:
+    vault_password: ""
+  no_log: true
+
 # Fetch the logs back to the user
 - name: Fetch activation logs
   when: psmp_fetch_activation_logs
